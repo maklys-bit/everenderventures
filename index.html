@@ -4,14 +4,26 @@
   <meta charset="UTF-8" />
   <title>Everender Ventures</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Everender Ventures invests in the future of food for active people." />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #050608;
-      --fg: #ffffff;
-      --muted: #a0a4b3;
+      --bg: #05060b;
+      --bg-soft: #0b0d16;
+      --fg: #f5f5f7;
+      --muted: #9da3b7;
+      --accent: #71ffe2;
+      --accent-soft: rgba(113, 255, 226, 0.12);
+      --accent-2: #4f46e5;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --card-bg: rgba(12, 14, 25, 0.9);
+      --radius-xl: 20px;
+      --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.7);
     }
 
     * {
@@ -22,73 +34,221 @@
 
     body {
       min-height: 100vh;
-      background: radial-gradient(circle at top, #151924 0, var(--bg) 45%);
+      font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #151b33 0, var(--bg) 50%);
       color: var(--fg);
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* animated background blobs */
+    .blob {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.55;
+      pointer-events: none;
+      z-index: -1;
+      mix-blend-mode: screen;
+      animation: float 34s linear infinite;
+    }
+
+    .blob--a {
+      background: radial-gradient(circle at 30% 30%, #71ffe2, transparent 60%);
+      top: -60px;
+      left: -40px;
+    }
+    .blob--b {
+      background: radial-gradient(circle at 60% 60%, #4f46e5, transparent 60%);
+      bottom: -140px;
+      right: -80px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%   { transform: translate3d(0, 0, 0); }
+      50%  { transform: translate3d(40px, -30px, 0); }
+      100% { transform: translate3d(0, 0, 0); }
+    }
+
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 56px;
     }
 
-    .wrap {
-      text-align: center;
-      padding: 40px 24px;
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .logo-wrap {
+    /* minimalist Everender logo (window + pixels) */
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 0 0, #71ffe2, #4f46e5);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .logo-icon {
-      width: 80px;
-      height: 80px;
+    .logo-mark-inner {
+      width: 72%;
+      height: 72%;
+      border-radius: 9px;
+      border: 2px solid rgba(5, 6, 11, 0.9);
+      position: relative;
     }
 
-    .wordmark {
+    .logo-mark-inner::after {
+      content: "";
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #05060b;
+      box-shadow:
+        6px 6px 0 #05060b,
+        12px 12px 0 #05060b;
+      right: 6px;
+      bottom: 6px;
+    }
+
+    .logo-text {
       font-weight: 600;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      font-size: 0.9rem;
-      margin-top: 18px;
+      font-size: 0.75rem;
       color: var(--muted);
     }
 
-    h1 {
-      margin-top: 40px;
+    .pill {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      background: rgba(10, 13, 24, 0.8);
+      backdrop-filter: blur(18px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+      gap: 36px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    .hero-heading {
+      font-size: clamp(2.2rem, 3.2vw, 2.8rem);
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .hero-gradient {
+      background: radial-gradient(circle at 0 50%, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-body {
+      color: var(--muted);
+      font-size: 0.98rem;
+      max-width: 34rem;
+      margin-bottom: 28px;
+    }
+
+    .hero-body strong {
+      color: var(--fg);
+      font-weight: 500;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      padding: 11px 22px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #020203;
       font-weight: 600;
-      font-size: clamp(1.6rem, 3vw, 2rem);
+      font-size: 0.9rem;
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.4);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
     }
 
-    p.tagline {
-      margin-top: 16px;
-      font-size: 1rem;
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 20px 60px rgba(79, 70, 229, 0.55);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
       color: var(--muted);
+      background: rgba(5, 7, 15, 0.8);
+      text-decoration: none;
+      font-size: 0.86rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
     }
-  </style>
-</head>
-<body>
-  <main class="wrap">
-    <div class="logo-wrap">
-      <!-- Inline SVG logo: “window” with pixels -->
-      <svg class="logo-icon" viewBox="0 0 64 64" aria-hidden="true">
-        <rect x="10" y="10" width="44" height="44" rx="9" ry="9"
-              fill="none" stroke="white" stroke-width="4" />
-        <!-- pixels flowing out -->
-        <rect x="40" y="32" width="5" height="5" fill="white" />
-        <rect x="47" y="32" width="5" height="5" fill="white" />
-        <rect x="40" y="39" width="5" height="5" fill="white" />
-        <rect x="47" y="39" width="5" height="5" fill="white" />
-        <rect x="47" y="46" width="5" height="5" fill="white" />
-      </svg>
-    </div>
 
-    <div class="wordmark">EVERENDER VENTURES</div>
+    .btn-ghost:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      color: var(--fg);
+      background: rgba(10, 13, 26, 0.9);
+    }
 
-    <h1>We invest in the future of food for active people.</h1>
-    <p class="tagline">Long-term capital for founders redefining performance, health, and everyday nutrition.</p>
-  </main>
-</body>
-</html>
+    .hero-meta {
+      margin-top: 2
