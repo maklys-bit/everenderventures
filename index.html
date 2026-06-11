@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Everender Ventures</title>
-<meta name="description" content="Everender Ventures invests in the future of food for active people. The future doesn't arrive at once. It renders.">
+<meta name="description" content="Everender Ventures is a Hamburg-based private equity firm investing in the future of food for active people. Founding investor of AGAIN Nutrition.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -94,7 +94,11 @@
   }
   #cube3d canvas{display:block}
   @media(max-width:900px){
-    #cube3d{width:100%;left:0;opacity:.3}
+    #cube3d{
+      left:auto;right:4px;top:84px;
+      width:min(52vw,250px);height:min(52vw,250px);
+      opacity:1;
+    }
   }
   .hero-inner{position:relative;z-index:2;max-width:1200px}
   .hero-eyebrow{color:var(--gray);margin-bottom:26px}
@@ -339,7 +343,7 @@
     <canvas id="ventureCanvas" width="300" height="300" aria-hidden="true"></canvas>
     <div>
       <p class="status mono"><span class="blink"></span>In render · Launch 2026</p>
-      <h3 class="ag-logo" aria-label="AGAIN">
+      <h3 class="ag-logo" aria-label="AGAIN Nutrition">
         <svg viewBox="365 672 770 152" aria-hidden="true" fill="#FFFFFF">
           <path d="M673.58,695.95l-43.61,107.94h22.11l7.68-20.12h44.28l7.61,20.12h22.26l-43.15-107.94H673.58z M666.45,766.28 l15.56-40.73l15.41,40.73H666.45z"/>
           <path d="M802.4,762.44l32.74,0.32c-0.64,3.13-1.62,5.98-2.95,8.51c-2.56,4.86-6.25,8.52-11.05,10.98 c-4.82,2.46-10.65,3.68-17.5,3.68c-6.35,0-12.05-1.51-17.12-4.53c-5.07-3.02-9.09-7.24-12.05-12.67 c-2.97-5.42-4.45-11.77-4.45-19.04c0-7.06,1.48-13.31,4.45-18.73c2.97-5.42,7.09-9.65,12.36-12.67c5.27-3.02,11.34-4.53,18.19-4.53 c6.04,0,11.57,1.18,16.58,3.53c5.01,2.36,9.16,5.78,12.44,10.29l14.28-14.28c-5.02-6.04-11.24-10.7-18.66-13.97 c-7.42-3.28-15.58-4.91-24.49-4.91c-7.98,0-15.41,1.38-22.26,4.15c-6.86,2.76-12.84,6.68-17.96,11.75 c-5.12,5.07-9.14,10.95-12.05,17.66c-2.92,6.71-4.38,13.95-4.38,21.73c0,7.78,1.43,15.05,4.3,21.8c2.86,6.76,6.83,12.69,11.9,17.81 c5.07,5.12,10.95,9.11,17.66,11.98c6.7,2.86,13.84,4.3,21.42,4.3c10.44,0,19.7-2.17,27.79-6.53c8.08-4.35,14.43-10.87,19.04-19.58 c4.61-8.7,6.91-19.5,6.91-32.4v-3.07H802.4V762.44z"/>
@@ -351,9 +355,10 @@
         </svg>
         <sup>®</sup>
       </h3>
-      <p class="tag">Performance supplements, made like real food. A new format for protein, built for people who never skip.</p>
+      <p class="tag">AGAIN Nutrition makes performance supplements like real food. A new format for protein, built for people who never skip.</p>
     </div>
     <div class="meta">
+      <div><b>Company</b>AGAIN Nutrition GmbH</div>
       <div><b>Category</b>Performance nutrition</div>
       <div><b>Market</b>Germany, then Europe</div>
       <div><b>Role</b>Founding investment</div>
@@ -716,7 +721,7 @@
     geo.setAttribute('position', new THREE.BufferAttribute(posA, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colA, 3));
     const mat = new THREE.PointsMaterial({
-      size:.055, map:dotTex, alphaTest:.5, transparent:true,
+      size:.07, map:dotTex, alphaTest:.5, transparent:true,
       vertexColors:true, sizeAttenuation:true
     });
     const points = new THREE.Points(geo, mat);
@@ -724,6 +729,23 @@
     group.add(points); scene.add(group);
     group.scale.setScalar(4.96/N);
     points.frustumCulled = false;
+
+    /* spark layer: bigger dots flashing in prism colors */
+    const SPN = 60;
+    const sPos = new Float32Array(SPN*3);
+    const sCol = new Float32Array(SPN*3);
+    const sFull = new Float32Array(SPN*3);
+    const sLife = new Float32Array(SPN);
+    const sGeo = new THREE.BufferGeometry();
+    sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+    sGeo.setAttribute('color', new THREE.BufferAttribute(sCol, 3));
+    const sMat = new THREE.PointsMaterial({
+      size:.18, map:dotTex, alphaTest:.5, transparent:true,
+      vertexColors:true, sizeAttenuation:true
+    });
+    const sparks = new THREE.Points(sGeo, sMat);
+    sparks.frustumCulled = false;
+    group.add(sparks);
 
     let order = Array.from({length: total}, (_,i)=>i).sort(()=>Math.random()-.5);
     const rank = new Uint16Array(total);
@@ -737,6 +759,21 @@
     const flick = new Uint8Array(total);
     const lastDot = order[CAP-1];           /* the dot that can't settle */
     let lastHue = 0;
+
+    function respawnSpark(s, life){
+      if(count <= 0){ sPos[s*3+1] = FAR; sLife[s] = 0; return; }
+      const i = order[Math.floor(Math.random()*count)];
+      sPos[s*3]   = base[i*3];
+      sPos[s*3+1] = base[i*3+1];
+      sPos[s*3+2] = base[i*3+2];
+      tmp.copy(PR3[Math.floor(Math.random()*PR3.length)]);
+      sFull[s*3]=tmp.r; sFull[s*3+1]=tmp.g; sFull[s*3+2]=tmp.b;
+      sLife[s] = life;
+    }
+    for(let s=0;s<SPN;s++){
+      sPos[s*3+1] = FAR;
+      if(!RM) sLife[s] = -Math.random();  /* staggered first spawn */
+    }
 
     /* pointer */
     const ray = new THREE.Raycaster();
@@ -820,6 +857,22 @@
           disp[i*3]=0; disp[i*3+1]=0; disp[i*3+2]=0;
           glow[i] = 1;
         }
+      }
+
+      /* sparks: flash, fade to background, respawn elsewhere */
+      if(!RM){
+        for(let s=0;s<SPN;s++){
+          sLife[s] -= .022;
+          if(sLife[s] <= 0){ respawnSpark(s, 1); }
+          /* triangle envelope: quick flare in, slow fade out */
+          const L = sLife[s];
+          const f = L > .8 ? (1-L)/.2 : L/.8;
+          sCol[s*3]   = sFull[s*3]  *f + (1-f);
+          sCol[s*3+1] = sFull[s*3+1]*f + (1-f);
+          sCol[s*3+2] = sFull[s*3+2]*f + (1-f);
+        }
+        sGeo.attributes.position.needsUpdate = true;
+        sGeo.attributes.color.needsUpdate = true;
       }
 
       /* hover */
