@@ -93,6 +93,10 @@
     z-index:1;pointer-events:none;
   }
   #cube3d canvas{display:block}
+  @media(min-width:1600px){
+    /* big screens: keep the cube beside the text, not lost at the far edge */
+    #cube3d{right:auto;left:min(52vw,880px);width:760px}
+  }
   @media(max-width:900px){
     #cube3d{
       left:auto;right:4px;top:84px;
