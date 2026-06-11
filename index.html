@@ -113,11 +113,16 @@
     max-width:14ch;
   }
   h1 .l{display:block;overflow:hidden}
-  h1 .l span{display:block;transform:translateY(110%);}
-  body.ready h1 .l span{transition:transform .7s steps(9);transform:translateY(0)}
-  body.ready h1 .l:nth-child(2) span{transition-delay:.08s}
-  body.ready h1 .l:nth-child(3) span{transition-delay:.16s}
-  h1 .px{color:var(--accent)}
+  h1 .l > span{display:block;transform:translateY(110%);}
+  body.ready h1 .l > span{transition:transform .7s steps(9);transform:translateY(0)}
+  body.ready h1 .l:nth-child(2) > span{transition-delay:.08s}
+  body.ready h1 .l:nth-child(3) > span{transition-delay:.16s}
+  /* the green period */
+  .px{
+    display:inline-block;width:.12em;height:.12em;
+    background:var(--accent);border-radius:50%;
+    margin-left:.06em;vertical-align:baseline;
+  }
   .hero-sub{
     margin-top:30px;max-width:52ch;color:var(--gray);font-size:17px;
     opacity:0;transform:translateY(14px);
@@ -190,10 +195,27 @@
   .focus-row::before{
     content:'';position:absolute;inset:0;background:var(--ink);
     transform:scaleY(0);transform-origin:top center;
-    transition:transform .26s steps(6);
+    transition:transform .14s steps(4);
   }
   .focus-row:hover::before{transform:scaleY(1)}
-  .focus-row > *{position:relative;z-index:1;transition:color .26s steps(6)}
+  /* pixel loading line along the top: prism squares */
+  .focus-row::after{
+    content:'';position:absolute;top:0;left:0;right:0;height:6px;
+    background:repeating-linear-gradient(90deg,
+      #FF3B3B 0 6px,    transparent 6px 10px,
+      #FF8A00 10px 16px, transparent 16px 20px,
+      #FFC400 20px 26px, transparent 26px 30px,
+      #16C25B 30px 36px, transparent 36px 40px,
+      #00BFB3 40px 46px, transparent 46px 50px,
+      #1E7BFF 50px 56px, transparent 56px 60px,
+      #6A5CFF 60px 66px, transparent 66px 70px,
+      #C44BD9 70px 76px, transparent 76px 80px);
+    transform:scaleX(0);transform-origin:left;
+    transition:transform .45s steps(14);
+    z-index:1;
+  }
+  .focus-row:hover::after{transform:scaleX(1)}
+  .focus-row > *{position:relative;z-index:1;transition:color .14s steps(4)}
   .focus-row .cell{color:var(--accent)}
   .focus-row h3{font-size:clamp(1.25rem,2.4vw,1.8rem);font-weight:600}
   .focus-row p{color:var(--gray);font-size:15px}
@@ -237,7 +259,6 @@
   /* ---------- Contact ---------- */
   #contact{border-top:1px solid var(--line);text-align:left}
   #contact h2{font-size:clamp(2.2rem,6vw,5.4rem);max-width:16ch;font-weight:650}
-  #contact h2 .px{color:var(--accent)}
   .mail{
     display:inline-block;margin-top:38px;text-decoration:none;
     font-family:'JetBrains Mono',monospace;font-size:clamp(15px,2.4vw,22px);
@@ -282,11 +303,11 @@
   <div class="hero-inner">
     <p class="hero-eyebrow mono" data-scramble>Private equity <i>·</i> Hamburg</p>
     <h1>
-      <span class="l"><span>We invest in the</span></span>
-      <span class="l"><span>future of food</span></span>
-      <span class="l"><span>for active people<i class="px">.</i></span></span>
+      <span class="l"><span>We invest in</span></span>
+      <span class="l"><span>what active lives</span></span>
+      <span class="l"><span>run on<span class="px" aria-hidden="true"></span></span></span>
     </h1>
-    <p class="hero-sub">Everender Ventures is a private equity firm focused on next-generation nutrition, performance and everyday wellness. We partner with founders building products that make it easier to move, train and live better.</p>
+    <p class="hero-sub">Everender Ventures is a private equity firm investing in what active lives run on: nutrition, performance, recovery and the infrastructure behind them. We partner with founders who make it easier to move, train and live better.</p>
     <a class="hero-cta" href="mailto:contact@everenderventures.com"><b>Contact us</b><i>↗</i></a>
   </div>
   <div class="hero-facts mono">
@@ -372,7 +393,7 @@
 
 <section id="contact">
   <span class="mono" style="color:var(--accent)" data-scramble>Contact</span>
-  <h2 data-reveal style="margin-top:24px">Building the future of food? Let's render it together<span class="px">.</span></h2>
+  <h2 data-reveal style="margin-top:24px">Building the future of food? Let's render it together<span class="px" aria-hidden="true"></span></h2>
   <a class="mail" href="mailto:contact@everenderventures.com">contact@everenderventures.com <i>↗</i></a>
 </section>
 
@@ -454,7 +475,8 @@
   /* ---------- Hero pixel canvas ---------- */
   const canvas = document.getElementById('heroCanvas');
   const ctx = canvas.getContext('2d');
-  let cols, rows, cells, CS = 26, W, H;
+  const PRGB = PRISM.map(h=>{const n=parseInt(h.slice(1),16);return ((n>>16)&255)+','+((n>>8)&255)+','+(n&255);});
+  let cols, rows, cells, cellCol, CS = 26, W, H;
   function sizeHero(){
     const r = canvas.parentElement.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio||1, 2);
@@ -463,6 +485,7 @@
     ctx.setTransform(dpr,0,0,dpr,0,0);
     cols = Math.ceil(W/CS); rows = Math.ceil(H/CS);
     cells = new Float32Array(cols*rows);
+    cellCol = new Int8Array(cols*rows).fill(-1);
   }
   sizeHero();
   window.addEventListener('resize', sizeHero);
@@ -477,8 +500,9 @@
     for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
       const c=cc+dc, r=cr+dr;
       if(c<0||r<0||c>=cols||r>=rows) continue;
-      if(dr===0&&dc===0) cells[r*cols+c]=1;
-      else if(Math.random()<.35) cells[r*cols+c]=Math.max(cells[r*cols+c],.6);
+      const ix = r*cols+c;
+      if(dr===0&&dc===0){ cells[ix]=1; cellCol[ix]=-2; }
+      else if(Math.random()<.35){ cells[ix]=Math.max(cells[ix],.6); cellCol[ix]=-2; }
     }
   }, {passive:true});
 
@@ -486,14 +510,18 @@
   function drawHero(){
     frame++;
     ctx.clearRect(0,0,W,H);
-    if(!RM && frame%6===0){
+    /* ambient pops, sparse and calm */
+    if(!RM && frame%30===0){
       const i = Math.floor(Math.random()*cells.length);
-      cells[i] = Math.max(cells[i], .28);
+      cells[i] = Math.max(cells[i], .9);
+      cellCol[i] = Math.random()<.5 ? Math.floor(Math.random()*PRGB.length) : -1;
     }
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
       const i=r*cols+c, v=cells[i];
       if(v<=0.01) continue;
-      ctx.fillStyle = v>.5 ? 'rgba(10,145,82,'+(v*.32)+')' : 'rgba(10,12,18,'+(v*.10)+')';
+      if(cellCol[i]>=0)        ctx.fillStyle = 'rgba('+PRGB[cellCol[i]]+','+(v*.85)+')';
+      else if(cellCol[i]===-2) ctx.fillStyle = 'rgba(10,145,82,'+(v*.32)+')';
+      else                     ctx.fillStyle = 'rgba(10,12,18,'+(v*.12)+')';
       ctx.fillRect(c*CS+1, r*CS+1, CS-2, CS-2);
       cells[i]*= .94;
     }
@@ -603,18 +631,23 @@
   /* ---------- Footer pixel wordmark ---------- */
   const fc = document.getElementById('footerCanvas');
   const fctx = fc.getContext('2d');
-  let fCells = [], fOrder = [], fShown = 0, fStarted = false, fcell = 6, fW=0, fH=0;
+  const INK_RGB = [10,12,18];
+  const PRISM_RGB = PRISM.map(h=>{const n=parseInt(h.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];});
+  let fCells=[], fOrder=[], fRank=null, fGlow=null, fGcol=null,
+      fShown=0, fStarted=false, fInView=false, fcell=6, fW=0, fH=0, fGW=1, fT=0, scanX=-1;
+
   function buildFooter(){
     const w = fc.parentElement.clientWidth;
     fcell = Math.max(4, Math.floor(w/130));
     const gridW = Math.floor(w/fcell);
     const gridH = Math.floor(gridW*0.16);
+    fGW = gridW;
     const off = document.createElement('canvas');
     off.width = gridW; off.height = gridH;
     const octx = off.getContext('2d');
-    octx.fillStyle='#000';
+    octx.fillStyle = '#000';
     octx.font = '800 '+Math.floor(gridH*0.92)+'px Outfit, sans-serif';
-    octx.textBaseline='middle';
+    octx.textBaseline = 'middle';
     const tw = octx.measureText('EVERENDER').width;
     octx.save();
     if(tw > gridW) octx.scale(gridW/tw, 1);
@@ -625,46 +658,116 @@
     for(let y=0;y<gridH;y++)for(let x=0;x<gridW;x++){
       if(data[(y*gridW+x)*4+3] > 120) fCells.push([x,y]);
     }
-    fOrder = fCells.map((_,i)=>i).sort(()=>Math.random()-.5);
-    const dpr = Math.min(window.devicePixelRatio||1,2);
+    /* assembly order: a ragged left-to-right render front */
+    fOrder = fCells.map((_,i)=>i).sort((a,b)=>
+      (fCells[a][0] + Math.random()*16) - (fCells[b][0] + Math.random()*16));
+    fRank = new Int32Array(fCells.length);
+    fOrder.forEach((v,i)=>fRank[v]=i);
+    fGlow = new Float32Array(fCells.length);
+    fGcol = new Int16Array(fCells.length);
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
     fW = gridW*fcell; fH = gridH*fcell;
     fc.width = fW*dpr; fc.height = fH*dpr;
     fc.style.height = fH+'px';
     fctx.setTransform(dpr,0,0,dpr,0,0);
     if(RM || fStarted) fShown = fCells.length;
-    drawFooter();
+    else fShown = Math.min(fShown, fCells.length);
   }
+
+  /* hover: paint the wordmark with prism light */
+  fc.addEventListener('mousemove', e=>{
+    if(RM || !fCells.length) return;
+    const r = fc.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    const R = fcell*6, R2 = R*R;
+    for(let i=0;i<fCells.length;i++){
+      const dx = fCells[i][0]*fcell - px, dy = fCells[i][1]*fcell - py;
+      const d2 = dx*dx + dy*dy;
+      if(d2 < R2){
+        if(fGlow[i] < .05) fGcol[i] = Math.floor(Math.random()*PRISM_RGB.length);
+        fGlow[i] = Math.max(fGlow[i], 1 - Math.sqrt(d2)/R);
+      }
+    }
+  }, {passive:true});
+
   function drawFooter(){
     fctx.clearRect(0,0,fW,fH);
-    fctx.fillStyle = INK;
-    for(let i=0;i<fShown;i++){
-      const [x,y] = fCells[fOrder[i]];
+    const n = fCells.length;
+    const FRONT = Math.max(80, Math.ceil(n/14));
+    for(let i=0;i<n;i++){
+      const rk = fRank[i];
+      if(rk >= fShown) continue;
+      const x = fCells[i][0], y = fCells[i][1];
+      let r0 = INK_RGB[0], g0 = INK_RGB[1], b0 = INK_RGB[2];
+      const fresh = fShown - rk;
+      if(fShown < n && fresh < FRONT){
+        /* leading edge renders in prism, then settles to ink */
+        const p = PRISM_RGB[(Math.floor(x/3) + y) % PRISM_RGB.length];
+        const m = fresh/FRONT;
+        r0 = p[0]+(INK_RGB[0]-p[0])*m;
+        g0 = p[1]+(INK_RGB[1]-p[1])*m;
+        b0 = p[2]+(INK_RGB[2]-p[2])*m;
+      } else if(fGlow[i] > .02){
+        const p = PRISM_RGB[fGcol[i]], g = fGlow[i];
+        r0 = INK_RGB[0]+(p[0]-INK_RGB[0])*g;
+        g0 = INK_RGB[1]+(p[1]-INK_RGB[1])*g;
+        b0 = INK_RGB[2]+(p[2]-INK_RGB[2])*g;
+        fGlow[i] *= .94;
+      }
+      fctx.fillStyle = 'rgb('+(r0|0)+','+(g0|0)+','+(b0|0)+')';
       fctx.fillRect(x*fcell, y*fcell, fcell-1, fcell-1);
     }
-    // a few pixels forever mid-render, in prism colors
-    if(fShown>=fCells.length && fCells.length){
+    /* a few pixels forever mid-render */
+    if(fShown >= n && n && !RM){
       for(let k=0;k<5;k++){
-        const idx = (k*7919) % fCells.length;
-        const [x,y] = fCells[idx];
-        if(Math.random()<.5){
-          fctx.fillStyle = PRISM[k % PRISM.length];
+        const idx = (k*7919) % n;
+        const x = fCells[idx][0], y = fCells[idx][1];
+        const on = Math.floor((fT + k*11)/26) % 2 === 0;
+        fctx.clearRect(x*fcell, y*fcell, fcell, fcell);
+        if(on){
+          const p = PRISM_RGB[k % PRISM_RGB.length];
+          fctx.fillStyle = 'rgb('+p[0]+','+p[1]+','+p[2]+')';
           fctx.fillRect(x*fcell, y*fcell, fcell-1, fcell-1);
         }
-        else { fctx.clearRect(x*fcell, y*fcell, fcell, fcell); }
       }
     }
   }
+
+  function fLoop(){
+    requestAnimationFrame(fLoop);
+    if(!fInView || !fStarted || !fCells.length) return;
+    fT++;
+    if(!RM){
+      if(fShown < fCells.length){
+        fShown = Math.min(fCells.length, fShown + Math.max(2, Math.ceil(fCells.length/110)));
+      } else {
+        /* periodic rainbow re-render scan */
+        if(scanX < 0){
+          if(fT % 480 === 0) scanX = -fcell*2;
+        } else {
+          scanX += Math.max(5, fW/120);
+          for(let i=0;i<fCells.length;i++){
+            const cx = fCells[i][0]*fcell;
+            if(Math.abs(cx - scanX) < fcell*2.2){
+              fGcol[i] = Math.floor((fCells[i][0]*PRISM_RGB.length)/fGW) % PRISM_RGB.length;
+              fGlow[i] = Math.max(fGlow[i], 1);
+            }
+          }
+          if(scanX > fW + fcell*4) scanX = -1;
+        }
+      }
+    }
+    drawFooter();
+  }
+  fLoop();
+
   const fio = new IntersectionObserver(en=>{
-    if(!en[0].isIntersecting || fStarted) return;
-    fStarted = true;
-    if(RM){ fShown = fCells.length; drawFooter(); return; }
-    const step = Math.max(1, Math.floor(fCells.length/70));
-    const iv = setInterval(()=>{
-      fShown = Math.min(fCells.length, fShown+step);
-      drawFooter();
-      if(fShown>=fCells.length){ clearInterval(iv); setInterval(drawFooter, 600); }
-    }, 16);
-  }, {threshold:.2});
+    fInView = en[0].isIntersecting;
+    if(fInView && !fStarted){
+      fStarted = true;
+      if(RM){ fShown = fCells.length; drawFooter(); }
+    }
+  }, {threshold:.15});
   document.fonts.ready.then(()=>{ buildFooter(); fio.observe(fc); });
   window.addEventListener('resize', ()=>{ buildFooter(); });
 
